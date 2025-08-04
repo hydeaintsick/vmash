@@ -1,29 +1,6 @@
-version: '3.8'
+version: "3.8"
 
 services:
-  # Windows Server 2022 with RDP enabled
-  windows-server:
-    image: mcr.microsoft.com/windows/servercore:ltsc2022
-    container_name: winweb-windows
-    ports:
-      - "3389:3389"
-    environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=WinWeb2024!
-    command: >
-      powershell -Command "
-        Set-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server' -Name 'fDenyTSConnections' -Value 0;
-        Enable-NetFirewallRule -DisplayGroup 'Remote Desktop';
-        Set-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\WinStations\\RDP-Tcp' -Name 'UserAuthentication' -Value 1;
-        net user Administrator WinWeb2024! /add;
-        net localgroup administrators Administrator /add;
-        Start-Service TermService;
-        while ($true) { Start-Sleep 3600 }
-      "
-    restart: unless-stopped
-    networks:
-      - winweb-network
-
   # Guacamole Server
   guacd:
     image: guacamole/guacd:latest
@@ -58,7 +35,7 @@ services:
       POSTGRES_PASSWORD: guacamole_password
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init-guacamole-db.sql:/docker-entrypoint-initdb.d/init-guacamole-db.sql
+      - ./init-guacamole-db-mac.sql:/docker-entrypoint-initdb.d/init-guacamole-db.sql
     restart: unless-stopped
     networks:
       - winweb-network
@@ -77,8 +54,20 @@ services:
     depends_on:
       - postgres
       - guacd
-    command: /opt/guacamole/bin/initdb.sh --postgres
+    command: /opt/guacamole/bin/initdb.sh --postgresql
     restart: "no"
+    networks:
+      - winweb-network
+
+  # Demo Linux Desktop (for testing on macOS/ARM64)
+  demo-desktop:
+    image: dorowu/ubuntu-desktop-lxde-vnc:latest
+    container_name: winweb-demo-desktop
+    ports:
+      - "5900:80"
+    environment:
+      - VNC_PASSWORD=password
+    restart: unless-stopped
     networks:
       - winweb-network
 
@@ -87,4 +76,4 @@ networks:
     driver: bridge
 
 volumes:
-  postgres_data: 
+  postgres_data:

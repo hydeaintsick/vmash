@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# WinWeb Startup Script
-# This script starts both the Next.js frontend and Docker services
+# WinWeb macOS Startup Script
+# This script starts the macOS-compatible configuration for Apple Silicon
 
 set -e
 
-echo "🚀 Starting WinWeb Application..."
+echo "🚀 Starting WinWeb for macOS (Apple Silicon)..."
 
 # Colors for output
 RED='\033[0;31m'
@@ -66,9 +66,9 @@ install_dependencies() {
     fi
 }
 
-# Start Docker services
+# Start Docker services for macOS
 start_docker_services() {
-    print_status "Starting Docker services..."
+    print_status "Starting Docker services for macOS (Apple Silicon)..."
     
     # Stop any existing containers
     docker compose down > /dev/null 2>&1 || true
@@ -90,6 +90,21 @@ start_docker_services() {
         sleep 5
     done
     print_success "Guacamole is ready"
+}
+
+# Kill processes on ports if they exist
+kill_port_processes() {
+    print_status "Checking for processes on required ports..."
+    
+    # Kill process on port 3000 (Next.js) - but not Docker
+    if lsof -ti:3000 > /dev/null 2>&1; then
+        print_warning "Process found on port 3000, killing it..."
+        lsof -ti:3000 | grep -v docker | xargs kill -9 2>/dev/null || true
+        sleep 2
+    fi
+    
+    # Don't kill Docker processes on port 8080/5900 - they're needed
+    print_success "Ports checked (Docker processes preserved)"
 }
 
 # Start Next.js development server
@@ -121,9 +136,9 @@ show_status() {
     echo "=================="
     
     # Check Docker containers
-    if docker compose ps | grep -q "Up"; then
+    if docker compose -f docker-compose.mac.yml ps | grep -q "Up"; then
         print_success "Docker containers are running"
-        docker compose ps
+        docker compose -f docker-compose.mac.yml ps
     else
         print_error "Docker containers are not running"
     fi
@@ -147,7 +162,7 @@ show_status() {
 cleanup() {
     print_status "Shutting down services..."
     kill $FRONTEND_PID 2>/dev/null || true
-    docker compose down
+    docker compose -f docker-compose.mac.yml down
     print_success "All services stopped"
     exit 0
 }
@@ -157,17 +172,18 @@ trap cleanup SIGINT SIGTERM
 
 # Main execution
 main() {
-    echo "🎯 WinWeb - Windows Remote Desktop Web App"
-    echo "=========================================="
+    echo "🎯 WinWeb - macOS Remote Desktop Web App"
+    echo "========================================"
     
     check_docker
     check_node
     install_dependencies
+    kill_port_processes
     start_docker_services
     start_frontend
     
     echo ""
-    print_success "🎉 WinWeb is now running!"
+    print_success "🎉 WinWeb for macOS is now running!"
     echo ""
     echo "📱 Access your application:"
     echo "   • Frontend: http://localhost:3000"
@@ -175,8 +191,15 @@ main() {
     echo ""
     echo "🔑 Default credentials:"
     echo "   • Guacamole: guacadmin / guacadmin"
-    echo "   • Windows: Administrator / WinWeb2024!"
+    echo "   • Demo Desktop: password"
     echo ""
+    echo "🖥️  Remote Desktop Access:"
+    echo "   1. Go to http://localhost:8080/guacamole"
+    echo "   2. Login with guacadmin / guacadmin"
+    echo "   3. Click on 'demo-desktop' connection"
+    echo "   4. Enter VNC password: password"
+    echo ""
+    echo "⚠️  Note: Using Linux demo desktop (Windows not available on Apple Silicon)"
     echo "⏹️  Press Ctrl+C to stop all services"
     
     show_status

@@ -1,245 +1,177 @@
-# WinWeb - Windows Remote Desktop Web App
+# WinWeb - Linux Desktop Web App
 
-A modern web application that provides access to a Windows Server instance through WebRDP/WebVNC using Apache Guacamole, built with Next.js 15.
+A web-based Linux desktop application using Next.js 15, Docker, and VNC for direct desktop access.
 
-## Features
+## 🏗️ Architecture
 
-- 🖥️ **Windows 11** running in Docker (x86_64 systems)
-- 🐧 **Demo Linux Desktop** for macOS/ARM64 compatibility
-- 🌐 **Web-based RDP/VNC** access through Apache Guacamole
-- ⚡ **Next.js 15** frontend with modern UI
-- 📱 **Responsive design** that works on all devices
-- 🔄 **Real-time status monitoring** of connections
-- 🐳 **Docker Compose** orchestration for easy deployment
+```
+┌─────────────────┐    ┌─────────────────┐
+│   Next.js 15    │    │  Ubuntu Desktop │
+│   Frontend      │◄──►│  with VNC       │
+│   (Port 3000)   │    │  (Port 5900)    │
+└─────────────────┘    └─────────────────┘
+```
 
-## Prerequisites
+## 🚀 Quick Start
+
+### Prerequisites
 
 - Docker and Docker Compose
 - Node.js 18+ and npm
-- At least 4GB RAM available for Docker containers
+- Git
 
-## Quick Start
+### Installation
 
-### 1. Clone and Setup
+1. **Clone the repository**
 
-```bash
-# Install Next.js dependencies
-npm install
+   ```bash
+   git clone <repository-url>
+   cd winweb
+   ```
 
-# Start the development server
-npm run dev
-```
+2. **Install dependencies**
 
-### 2. Start Docker Services
+   ```bash
+   npm install
+   ```
 
-**For macOS/ARM64 (Apple Silicon) - Demo Linux Desktop:**
+3. **Start the application**
 
-```bash
-# Use the macOS-compatible configuration
-docker compose -f docker-compose.mac.yml up -d
+   ```bash
+   ./start.sh
+   ```
 
-# Check container status
-docker compose -f docker-compose.mac.yml ps
-```
+4. **Access the application**
+   - Frontend: http://localhost:3000
+   - Click "Lancer le Bureau Linux" to start the desktop
 
-**For Windows 11 (x86_64 systems):**
-
-```bash
-# Use the Windows 11 configuration
-docker compose -f docker-compose.win11.yml up -d
-
-# Check container status
-docker compose -f docker-compose.win11.yml ps
-```
-
-**For Linux/Windows Server (x86_64):**
-
-```bash
-# Use the standard configuration
-docker compose up -d
-
-# Check container status
-docker compose ps
-```
-
-### 3. Access the Application
-
-- **Frontend**: http://localhost:3000
-- **Guacamole Admin**: http://localhost:8080/guacamole
-  - Username: `guacadmin`
-  - Password: `guacadmin`
-
-## Architecture
+## 📁 Project Structure
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Next.js 15    │    │ Apache Guacamole │    │ Windows 11      │
-│   Frontend      │◄──►│   Web Gateway   │◄──►│   (RDP/VNC)     │
-│   (Port 3000)   │    │   (Port 8080)   │    │   (Port 3389)   │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                              │
-                              ▼
-                       ┌─────────────────┐
-                       │   PostgreSQL    │
-                       │   Database      │
-                       │   (Port 5432)   │
-                       └─────────────────┘
+winweb/
+├── app/                    # Next.js 15 App Router
+│   ├── api/               # API routes
+│   │   └── status/        # Status checking endpoint
+│   ├── globals.css        # Global styles
+│   ├── layout.tsx         # Root layout
+│   └── page.tsx           # Main page
+├── scripts/               # Utility scripts
+│   ├── commit.sh          # Interactive commit helper
+│   └── quick-commit.sh    # Quick commit helper
+├── docker-compose.yml     # Docker services
+├── init-guacamole-db.sql  # Database initialization
+├── start.sh               # Startup script
+├── package.json           # Node.js dependencies
+└── README.md              # This file
 ```
 
-## Docker Services
+## 🐳 Docker Services
 
-- **windows-11**: Windows 11 with RDP enabled (x86_64 systems)
-- **demo-desktop**: Ubuntu Desktop with VNC (macOS/ARM64)
+### Core Services
+
+- **guacd**: Apache Guacamole daemon (VNC proxy)
 - **guacamole**: Apache Guacamole web application
-- **guacd**: Guacamole daemon for protocol handling
 - **postgres**: PostgreSQL database for Guacamole
-- **guacamole-init**: Database initialization service
+- **guacamole-init**: Database initialization container
+- **demo-desktop**: Ubuntu Desktop with VNC
 
-## Configuration
+## 🔧 Configuration
 
-### Connection Settings
+### Environment Variables
 
-**For macOS/ARM64 (Demo Linux Desktop):**
+Copy `config.example.env` to `.env` and customize:
 
-- **Connection Name**: `demo-desktop`
-- **Protocol**: `VNC`
-- **Password**: `password`
-- **Resolution**: `1920x1080`
+```env
+# Next.js Configuration
+NEXT_PUBLIC_APP_NAME=WinWeb
+NEXT_PUBLIC_APP_VERSION=1.0.0
 
-**For Windows 11 (x86_64 systems):**
+# Docker Configuration
+DOCKER_COMPOSE_FILE=docker-compose.yml
+DOCKER_NETWORK=winweb-network
 
-- **Connection Name**: `winweb`
-- **Protocol**: `RDP`
-- **Username**: `Administrator`
-- **Password**: `WinWeb2024!`
-- **RDP Port**: `3389`
-- **Resolution**: `1920x1080`
+# VNC Configuration
+VNC_HOST=localhost
+VNC_PORT=5900
+VNC_PASSWORD=password
+```
 
-**For Linux/Windows Server (x86_64):**
+## 🚀 Usage
 
-- **Username**: `Administrator`
-- **Password**: `WinWeb2024!`
-- **RDP Port**: `3389`
-- **Resolution**: `1920x1080`
-
-### Guacamole Settings
-
-- **Admin Username**: `guacadmin`
-- **Admin Password**: `guacadmin`
-- **Connection Name**: `winweb`
-- **Protocol**: `RDP`
-
-## Development
-
-### Frontend Development
+### Development
 
 ```bash
-# Start development server
 npm run dev
+```
 
-# Build for production
+### Production
+
+```bash
 npm run build
-
-# Start production server
 npm start
 ```
 
-### Docker Management
-
-```bash
-# Start all services
-docker compose up -d
-
-# Stop all services
-docker compose down
-
-# View logs
-docker compose logs -f
-
-# Rebuild containers
-docker compose up -d --build
-```
-
-### Database Management
-
-```bash
-# Access PostgreSQL
-docker exec -it winweb-postgres psql -U guacamole_user -d guacamole_db
-
-# Backup database
-docker exec winweb-postgres pg_dump -U guacamole_user guacamole_db > backup.sql
-
-# Restore database
-docker exec -i winweb-postgres psql -U guacamole_user -d guacamole_db < backup.sql
-```
-
-## Troubleshooting
+## 🔍 Troubleshooting
 
 ### Common Issues
 
-1. **Windows container not starting**
-
-   - Ensure Docker has enough resources (4GB+ RAM)
-   - Check Windows container support is enabled
-
-2. **Guacamole connection failed**
-
-   - Verify all containers are running: `docker compose ps`
-   - Check logs: `docker compose logs guacamole`
-
-3. **Database connection issues**
-   - Wait for postgres to fully start before accessing Guacamole
-   - Check database logs: `docker compose logs postgres`
-
-### Port Conflicts
-
-If you have port conflicts, modify the ports in `docker-compose.yml`:
-
-```yaml
-ports:
-  - "8081:8080" # Change 8080 to 8081
-```
-
-### Security Notes
-
-- Default passwords should be changed in production
-- Consider using environment variables for sensitive data
-- Enable HTTPS in production environments
-
-## Production Deployment
-
-1. **Environment Variables**
+1. **Port conflicts**
 
    ```bash
-   export POSTGRES_PASSWORD=your_secure_password
-   export GUACAMOLE_ADMIN_PASSWORD=your_admin_password
+   # Check what's using the ports
+   lsof -i :3000
+   lsof -i :5900
    ```
 
-2. **Reverse Proxy**
+2. **Docker issues**
 
-   - Configure nginx or Apache as reverse proxy
-   - Enable SSL/TLS certificates
+   ```bash
+   # Restart Docker services
+   docker compose down
+   docker compose up -d
+   ```
 
-3. **Monitoring**
-   - Set up container health checks
-   - Configure log aggregation
-   - Monitor resource usage
+3. **Database issues**
+   ```bash
+   # Reset database
+   docker volume rm winweb_postgres_data
+   docker compose up -d
+   ```
 
-## License
+### Logs
 
-This project is open source and available under the MIT License.
+```bash
+# View all logs
+docker compose logs
 
-## Contributing
+# View specific service logs
+docker compose logs guacamole
+docker compose logs postgres
+docker compose logs demo-desktop
+```
+
+## 📝 Commit Convention
+
+This project uses conventional commits. Use the provided scripts:
+
+```bash
+# Interactive commit
+npm run commit
+
+# Quick commit
+npm run commit:quick <type> <message>
+```
+
+See `COMMIT_CONVENTION.md` for detailed usage.
+
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Submit a pull request
+4. Use conventional commits
+5. Submit a pull request
 
-## Support
+## 📄 License
 
-For issues and questions:
-
-- Check the troubleshooting section
-- Review Docker and Guacamole documentation
-- Open an issue on GitHub
+This project is licensed under the MIT License.
