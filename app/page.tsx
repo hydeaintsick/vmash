@@ -61,7 +61,7 @@ export default function Home() {
           showDesktop ? (
             <div className="flex-1 bg-black flex min-h-0">
               <iframe
-                src="http://localhost:5900"
+                src="http://localhost:5900/?autoconnect=true&resize=scale&toolbar=hidden"
                 className="w-full h-full border-none"
                 title="Linux Desktop"
                 allow="fullscreen"
